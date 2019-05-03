@@ -1,0 +1,458 @@
+<?xml version="1.0"?>
+<Ontology xmlns="http://www.w3.org/2002/07/owl#"
+     xml:base="http://www.semanticweb.org/loume/ontologies/2019/4/untitled-ontology-5"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     ontologyIRI="http://www.semanticweb.org/loume/ontologies/2019/4/untitled-ontology-5">
+    <Prefix name="" IRI="http://www.semanticweb.org/loume/ontologies/2019/4/untitled-ontology-5"/>
+    <Prefix name="owl" IRI="http://www.w3.org/2002/07/owl#"/>
+    <Prefix name="rdf" IRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
+    <Prefix name="xml" IRI="http://www.w3.org/XML/1998/namespace"/>
+    <Prefix name="xsd" IRI="http://www.w3.org/2001/XMLSchema#"/>
+    <Prefix name="rdfs" IRI="http://www.w3.org/2000/01/rdf-schema#"/>
+    <Declaration>
+        <Class IRI="#Comment"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#ImagePost"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#Moderator"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#Post"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#Reply"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#SitePost"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#Subreddit"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#TextPost"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#User"/>
+    </Declaration>
+    <Declaration>
+        <Class IRI="#VoteableItem"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#composedOf"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#createdAt"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#createdBy"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#creates"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#karma"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#moderatedBy"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#moderates"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#postedIn"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#postedUnder"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#relational_property"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#replyingTo"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#subscriberCount"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#userScore"/>
+    </Declaration>
+    <Declaration>
+        <ObjectProperty IRI="#value_property"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#date"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#edited"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#forum"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#gilded"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#karma"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#message"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#message_body"/>
+    </Declaration>
+    <Declaration>
+        <DataProperty IRI="#subreddit"/>
+    </Declaration>
+    <SubClassOf>
+        <Class IRI="#Comment"/>
+        <Class IRI="#VoteableItem"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#ImagePost"/>
+        <Class IRI="#Post"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#Moderator"/>
+        <Class IRI="#User"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#Post"/>
+        <Class IRI="#VoteableItem"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#Reply"/>
+        <Class IRI="#Comment"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#SitePost"/>
+        <Class IRI="#Post"/>
+    </SubClassOf>
+    <SubClassOf>
+        <Class IRI="#TextPost"/>
+        <Class IRI="#Post"/>
+    </SubClassOf>
+    <DisjointClasses>
+        <Class IRI="#ImagePost"/>
+        <Class IRI="#SitePost"/>
+    </DisjointClasses>
+    <DisjointClasses>
+        <Class IRI="#ImagePost"/>
+        <Class IRI="#TextPost"/>
+    </DisjointClasses>
+    <DisjointClasses>
+        <Class IRI="#SitePost"/>
+        <Class IRI="#TextPost"/>
+    </DisjointClasses>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#composedOf"/>
+        <ObjectProperty IRI="#value_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#createdAt"/>
+        <ObjectProperty IRI="#value_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#createdBy"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#creates"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#karma"/>
+        <ObjectProperty IRI="#value_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#moderatedBy"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#moderates"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#postedIn"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#postedUnder"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#replyingTo"/>
+        <ObjectProperty IRI="#relational_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#subscriberCount"/>
+        <ObjectProperty IRI="#value_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#userScore"/>
+        <ObjectProperty IRI="#value_property"/>
+    </SubObjectPropertyOf>
+    <SubObjectPropertyOf>
+        <ObjectProperty IRI="#value_property"/>
+        <ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </SubObjectPropertyOf>
+    <InverseObjectProperties>
+        <ObjectProperty IRI="#createdBy"/>
+        <ObjectProperty IRI="#creates"/>
+    </InverseObjectProperties>
+    <InverseObjectProperties>
+        <ObjectProperty IRI="#moderatedBy"/>
+        <ObjectProperty IRI="#moderates"/>
+    </InverseObjectProperties>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="#createdAt"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="#createdBy"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="#postedIn"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="#postedUnder"/>
+    </FunctionalObjectProperty>
+    <FunctionalObjectProperty>
+        <ObjectProperty IRI="#replyingTo"/>
+    </FunctionalObjectProperty>
+    <AsymmetricObjectProperty>
+        <ObjectProperty IRI="#createdBy"/>
+    </AsymmetricObjectProperty>
+    <AsymmetricObjectProperty>
+        <ObjectProperty IRI="#creates"/>
+    </AsymmetricObjectProperty>
+    <AsymmetricObjectProperty>
+        <ObjectProperty IRI="#postedUnder"/>
+    </AsymmetricObjectProperty>
+    <IrreflexiveObjectProperty>
+        <ObjectProperty IRI="#postedUnder"/>
+    </IrreflexiveObjectProperty>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#composedOf"/>
+        <Class IRI="#Comment"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#createdAt"/>
+        <ObjectUnionOf>
+            <Class IRI="#Comment"/>
+            <Class IRI="#Post"/>
+            <Class IRI="#User"/>
+        </ObjectUnionOf>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#createdBy"/>
+        <Class IRI="#VoteableItem"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#creates"/>
+        <Class IRI="#User"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#karma"/>
+        <Class IRI="#VoteableItem"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#moderatedBy"/>
+        <Class IRI="#Subreddit"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#moderates"/>
+        <Class IRI="#Moderator"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#postedIn"/>
+        <Class IRI="#Post"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#postedUnder"/>
+        <Class IRI="#Comment"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#replyingTo"/>
+        <Class IRI="#Reply"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#subscriberCount"/>
+        <Class IRI="#Subreddit"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyDomain>
+        <ObjectProperty IRI="#userScore"/>
+        <Class IRI="#User"/>
+    </ObjectPropertyDomain>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#composedOf"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#date"/>
+            <Datatype abbreviatedIRI="xsd:dateTime"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#composedOf"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#edited"/>
+            <Datatype abbreviatedIRI="xsd:boolean"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#composedOf"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#forum"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#composedOf"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#gilded"/>
+            <Datatype abbreviatedIRI="xsd:boolean"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#composedOf"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#karma"/>
+            <Datatype abbreviatedIRI="xsd:int"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#composedOf"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#message_body"/>
+            <Datatype abbreviatedIRI="xsd:string"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#createdAt"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#date"/>
+            <Datatype abbreviatedIRI="xsd:dateTime"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#createdBy"/>
+        <Class IRI="#User"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#creates"/>
+        <Class IRI="#VoteableItem"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#karma"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#karma"/>
+            <Datatype abbreviatedIRI="xsd:int"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#moderatedBy"/>
+        <Class IRI="#Moderator"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#moderates"/>
+        <Class IRI="#Subreddit"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#postedIn"/>
+        <Class IRI="#Subreddit"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#postedUnder"/>
+        <Class IRI="#Post"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#replyingTo"/>
+        <Class IRI="#Comment"/>
+    </ObjectPropertyRange>
+    <ObjectPropertyRange>
+        <ObjectProperty IRI="#userScore"/>
+        <DataExactCardinality cardinality="1">
+            <DataProperty IRI="#karma"/>
+            <Datatype abbreviatedIRI="xsd:int"/>
+        </DataExactCardinality>
+    </ObjectPropertyRange>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#date"/>
+        <DataProperty IRI="#message"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#edited"/>
+        <DataProperty IRI="#message"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#forum"/>
+        <DataProperty IRI="#message"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#gilded"/>
+        <DataProperty IRI="#message"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#karma"/>
+        <DataProperty IRI="#message"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#message"/>
+        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#message_body"/>
+        <DataProperty IRI="#message"/>
+    </SubDataPropertyOf>
+    <SubDataPropertyOf>
+        <DataProperty IRI="#subreddit"/>
+        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </SubDataPropertyOf>
+    <DataPropertyDomain>
+        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
+        <Class IRI="#Comment"/>
+    </DataPropertyDomain>
+    <DataPropertyDomain>
+        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
+        <Class IRI="#Post"/>
+    </DataPropertyDomain>
+    <DataPropertyDomain>
+        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
+        <Class IRI="#User"/>
+    </DataPropertyDomain>
+    <DataPropertyRange>
+        <DataProperty IRI="#date"/>
+        <Datatype abbreviatedIRI="xsd:dateTime"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty IRI="#edited"/>
+        <Datatype abbreviatedIRI="xsd:boolean"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty IRI="#forum"/>
+        <Datatype abbreviatedIRI="xsd:string"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty IRI="#gilded"/>
+        <Datatype abbreviatedIRI="xsd:int"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty IRI="#karma"/>
+        <Datatype abbreviatedIRI="xsd:int"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty IRI="#message_body"/>
+        <Datatype abbreviatedIRI="xsd:string"/>
+    </DataPropertyRange>
+    <DataPropertyRange>
+        <DataProperty abbreviatedIRI="owl:topDataProperty"/>
+        <Datatype abbreviatedIRI="xsd:int"/>
+    </DataPropertyRange>
+</Ontology>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+
