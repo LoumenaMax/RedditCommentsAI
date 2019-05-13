@@ -1,1 +1,4 @@
 praw
+numpy
+tensorflow
+protobuf==3.6.0
