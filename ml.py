@@ -24,6 +24,7 @@ writer = tf.summary.FileWriter(logs_path)
 # Text file containing words for training
 training_file = 'train.txt'
 
+# Takes in data and splits it by "time"
 def read_data(fname):
     with open(fname) as f:
         content = f.readlines()
