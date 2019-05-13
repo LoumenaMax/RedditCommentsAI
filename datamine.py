@@ -15,28 +15,70 @@ clientSecret = "6iNTXvVqkSRliLSpP0D9N-srTYQ"
 username = 'RedditCommentLSTM'
 password = "12345678"
 
-idLogPath = "data/post_ids.csv"
+postIdLogPath = "data/post_ids.csv"
+commentIdLogPath= "data/comment_ids.csv"
+commentDataPath= "data/comment_data.csv"
+
+# Number of Posts we are going to track
+postLimit = 10
+# Totl number of comments we are going to track
+# TODO: Speed up comment instantiation
+maxComments = 25
 
 def getPraw():
   return praw.Reddit(user_agent=userAgent, client_id=clientId, client_secret=clientSecret)
 
-def main():
-    r = getPraw()
-    page = r.subreddit('all')
-    top_posts = page.hot(limit=10)
-    all_ids = {}
+def getTrackingData(posts):
     post_ids = []
     comment_ids = []
     current_time =  time.mktime(time.localtime())
-    for post in top_posts:
-        print(post.name)
+    for post in posts:
+        print(post.id)
         post_ids.append(post.id)
-        single_post_comments = []
         for comment in post.comments.list():
-            single_post_comments.append(tuple([comment.id, current_time]))
-        comment_ids.append(single_post_comments)
-    df = DataFrame({'Posts': post_ids, 'Comments': comment_ids}, columns= ['Posts', 'Comments'])
-    export_csv = df.to_csv(idLogPath, index = None, header=True)
+            comment_ids.append(comment.id)
+    return {'Posts': post_ids}, {'Comments': comment_ids, 'Time': current_time}
+
+def exportTrackingData(postData, commentData):
+    p_df = DataFrame(postData, columns= ['Posts'])
+    c_df = DataFrame(commentData, columns=['Comments', 'Time'])
+    export_csv_p = p_df.to_csv(postIdLogPath, index = None, header=True)
+    export_csv_c = c_df.to_csv(commentIdLogPath, index = None, header=True)
+
+def getCommentData(comments, posts, r):
+    commentCount = 0
+    commentData = []
+    for index, row in posts.iterrows():
+        submission = r.submission(row[0])
+        for s_comment in submission.comments.list():
+            print(s_comment.id)
+            commentData.append([
+                s_comment.score,
+                s_comment.author.comment_karma,
+                s_comment.created_utc,
+                s_comment.edited,
+                len(s_comment.replies)
+            ])
+            commentCount += 1
+            if commentCount >= maxComments:
+                break
+        if commentCount >= maxComments:
+            break
+    return DataFrame(commentData, columns=['Score', 'Author Karma', 'Time Created', 'Edited', 'Replies'])
+
+def getInstantiatedData(r):
+    c_dataset = read_csv(commentIdLogPath)
+    p_dataset = read_csv(postIdLogPath)
+    getCommentData(c_dataset, p_dataset, r).to_csv(commentDataPath, index = None, header=True)
+
+def main():
+    r = getPraw()
+    # page = r.subreddit('all')
+    # posts = page.hot(limit=postLimit)
+    # postData, commentData = getTrackingData(posts)
+    #
+    # exportTrackingData(postData, commentData)
+    print(getInstantiatedData(r))
 
 
 if __name__ == "__main__":
