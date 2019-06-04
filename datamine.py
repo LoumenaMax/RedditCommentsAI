@@ -238,6 +238,7 @@ def main():
         print("Total Time Elapsed: {} min".format(time_elapsed/60))
         print("Time taken: {}".format(time.time()-begin_time))
         print("Comment Count: {}/{}".format(str(commentCount), str(maxComments)))
+        print("Comments are full" if full else "Comments are still being pulled")
         print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
         print("")
         if time_elapsed > (twelvehours * 2) + 300
