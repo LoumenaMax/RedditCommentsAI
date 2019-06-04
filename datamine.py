@@ -86,6 +86,12 @@ def getSingleCommentData(s_comment, replies_len, parent_score, submission_score,
             appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time), id)
     else:
         if s_comment.author is not None:
+            commentCount_lock.acquire()
+            try:
+                commentCount += 1
+                commentCount += replies_len
+            finally:
+                commentCount_lock.release()
             comment_dFrame = DataFrame([[
                 time.time(),
                 s_comment.score,
@@ -131,11 +137,7 @@ def threadSubmission(submission_id, r):
 
         commentCount_lock.acquire()
         try:
-            if commentCount >= maxComments:
-                finished = True
-            else:
-                commentCount += 1
-                commentCount += replies_len
+            finished = commentCount >= maxComments
         finally:
             commentCount_lock.release()
 
