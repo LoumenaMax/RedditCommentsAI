@@ -32,7 +32,11 @@ twelvehours = 60.0 * 60.0 * 12.0
 postLimit = 100
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
-maxComments = 4000
+maxComments = 1000
+full = False
+full_lock = threading.Lock()
+commentCount = 0
+commentCount_lock = threading.Lock()
 
 def getPraw():
     return praw.Reddit(user_agent=userAgent, client_id=clientId, client_secret=clientSecret)
@@ -63,6 +67,7 @@ def commentToString(s_comment, replies_len, parent_score, submission_score):
     )
 
 def getSingleCommentData(s_comment, replies_len, parent_score, submission_score):
+    print("Comment Id:{}".format(s_comment.id))
     id = s_comment.id
     if time.time() - s_comment.created_utc >= twelvehours:
         os.rename(commentDataPath.format(id), finishedCommentPath.format(id))
@@ -90,35 +95,46 @@ def getRepliesData(commentForest, parent_score, submission_score):
         getSingleCommentData(top_comment, len(replies.list()), parent_score, submission_score)
         getRepliesData(top_comment.replies, top_comment.score, submission_score)
 
-def getAllData(posts, r):
-    commentCount = 0
+def getAllData(r):
     threads = []
-    full = False
-    for submission in posts:
-        if full:
-            break
-        submission_score = submission.score
-        for top_comment in submission.comments:
-            replies = top_comment.replies
-            replies_len = len(replies.list())
-
-            commentCount += 1
-            commentCount += replies_len
-
-            x = threading.Thread(target=threadTopComment, args=(top_comment, replies_len, submission_score,))
-            x.start()
-            threads.append(x)
-
-            if commentCount >= maxComments:
-                full = True
-                break
+    post_data = read_csv(postIdLogPath)
+    for index, row in post_data.iterrows():
+        x = threading.Thread(target=threadSubmission, args=(row['Posts'], r,))
+        x.start()
+        threads.append(x)
     for thread in threads:
         thread.join()
-    return full
 
-def threadTopComment(top_comment, replies_len, submission_score):
-    getSingleCommentData(top_comment, replies_len, None, submission_score)
-    getRepliesData(top_comment.replies, top_comment.score, submission_score)
+def threadSubmission(submission_id, r):
+    global commentCount
+    global full
+    finished = False
+    submission = r.submission(submission_id)
+    print("Submission Id: {}".format(submission_id))
+    submission_score = submission.score
+    for top_comment in submission.comments:
+        replies = top_comment.replies
+        replies_len = len(replies.list())
+
+        commentCount_lock.acquire()
+        try:
+            if commentCount >= maxComments:
+                finished = True
+            else:
+                commentCount += 1
+                commentCount += replies_len
+        finally:
+            commentCount_lock.release()
+
+        if finished:
+            break
+
+        getSingleCommentData(top_comment, replies_len, None, submission_score)
+        getRepliesData(top_comment.replies, top_comment.score, submission_score)
+
+        if commentCount >= maxComments:
+            full = True
+            break
 
 def getAllDataFull(r):
     directory = os.fsencode(commentDataFolderPath)
@@ -145,21 +161,21 @@ def fileExists(id):
 
 def main():
     r = getPraw()
+    global full
 
     page = r.subreddit('all')
     posts = page.new(limit=postLimit)
 
-    # TODO: Find a way to save tracking data for posts
-    # postData = getTrackingData(posts)
-    # exportTrackingData(postData)
+    postData = getTrackingData(posts)
+    exportTrackingData(postData)
+
     starttime = time.time()
-    full = False
     while True:
         begin_time = time.time()
         if time.time() - starttime >= twelvehours:
             full = True
         if not full:
-            full = getAllData(posts, r)
+            getAllData(r)
         else:
             getAllDataFull(r)
         if time.time()-begin_time > 600:
