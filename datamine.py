@@ -196,12 +196,20 @@ def fileExists(id):
     config = Path(commentDataPath.format(str(id)))
     return config.is_file()
 
+def clearCommentsFolder():
+    directory = os.fsencode(commentDataFolderPath)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        id, file_extension = os.path.splitext(filename)
+        os.remove(commentDataPath.format(id))
+
 def main():
+    clearCommentsFolder()
     r = getPraw()
     global full
     global commentCount
     global maxComments
-    
+
     print("----------------------------------------------")
     print("Time between intervals: {} min".format(interval/60))
     print("Tracking {} posts and {} comments for {} hours".format(postLimit, maxComments, (twelvehours/60)/60))
