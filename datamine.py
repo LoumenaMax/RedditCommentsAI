@@ -55,12 +55,12 @@ def exportTrackingData(postData):
     export_csv_p = p_df.to_csv(postIdLogPath, index = None, header=True)
 
 def commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time):
-    return "{},{},{},{},{},{},{},{}\r\n".format(
+    return "{},{},{},{},{},{},{},{},{}\r\n".format(
         time.time(),
         s_comment.score,
         s_comment.author.comment_karma,
-        submission_time - s_comment.created_utc,
-        parent_time - s_comment.created_utc if parent_time else None,
+        s_comment.created_utc - submission_time,
+        s_comment.created_utc - parent_time if parent_time else None,
         s_comment.edited,
         replies_len,
         parent_score,
@@ -69,6 +69,7 @@ def commentToString(s_comment, replies_len, parent_score, submission_score, subm
 
 def getSingleCommentData(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time):
     id = s_comment.id
+    global commentCount
     if time.time() - s_comment.created_utc >= twelvehours:
         full = True
         os.rename(commentDataPath.format(id), finishedCommentPath.format(id))
@@ -76,6 +77,11 @@ def getSingleCommentData(s_comment, replies_len, parent_score, submission_score,
     if fileExists(id):
         if s_comment.author is None:
             os.remove(commentDataPath.format(id))
+            commentCount_lock.acquire()
+            try:
+                commentCount -= 1
+            finally:
+                commentCount_lock.release()
         else:
             appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time), id)
     else:
@@ -84,8 +90,8 @@ def getSingleCommentData(s_comment, replies_len, parent_score, submission_score,
                 time.time(),
                 s_comment.score,
                 s_comment.author.comment_karma,
-                submission_time - s_comment.created_utc,
-                parent_time - s_comment.created_utc if parent_time else None,
+                s_comment.created_utc - submission_time,
+                s_comment.created_utc - parent_time if parent_time else None,
                 s_comment.edited,
                 replies_len,
                 parent_score,
@@ -146,18 +152,40 @@ def threadSubmission(submission_id, r):
 
 def getAllDataFull(r):
     directory = os.fsencode(commentDataFolderPath)
+    threads = []
     for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        id, file_extension = os.path.splitext(filename)
-        comment = r.comment(id)
+        x = threading.Thread(target=threadFull, args=(file,r,))
+        x.start()
+        threads.append(x)
+    for thread in threads:
+        thread.join()
+
+def threadFull(file, r):
+    global commentCount
+    filename = os.fsdecode(file)
+    id, file_extension = os.path.splitext(filename)
+    comment = r.comment(id)
+    try:
         comment.refresh()
-        parent_score = None
-        submission_score = None
-        if not comment.link_id == comment.parent_id:
-            parent_score = comment.parent().score
-        submission_score = comment.submission.score
-        submission_time = comment.submission.created_utc
-        appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score, submission_time), id)
+    except praw.exceptions.ClientException:
+        os.remove(commentDataPath.format(id))
+        commentCount_lock.acquire()
+        try:
+            commentCount -= 1
+        finally:
+            commentCount_lock.release()
+            return
+    parent_score = None
+    submission_score = None
+    parent_time = None
+    if not comment.link_id == comment.parent_id:
+        parent = comment.parent()
+        parent_score = parent.score
+        parent_time = parent.created_utc
+    submission_score = comment.submission.score
+    submission_time = comment.submission.created_utc
+    appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score, submission_time, parent_time), id)
+
 
 def appendToComment(data, id):
     f = open(commentDataPath.format(str(id)), "a")
@@ -173,7 +201,7 @@ def main():
     global full
     global commentCount
     global maxComments
-
+    
     print("----------------------------------------------")
     print("Time between intervals: {} min".format(interval/60))
     print("Tracking {} posts and {} comments for {} hours".format(postLimit, maxComments, (twelvehours/60)/60))
