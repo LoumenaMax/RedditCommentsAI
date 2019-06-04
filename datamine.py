@@ -33,9 +33,9 @@ postLimit = 200
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
 maxComments = 1500
-full = True
+full = False
 full_lock = threading.Lock()
-commentCount = 166
+commentCount = 0
 commentCount_lock = threading.Lock()
 
 def getPraw():
