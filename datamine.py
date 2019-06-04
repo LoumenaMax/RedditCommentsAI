@@ -3,6 +3,7 @@ import requests
 import requests.auth
 import praw
 import os
+import threading
 from pathlib import Path
 from pandas import read_csv
 from pandas import DataFrame
@@ -20,19 +21,21 @@ password = "12345678"
 postIdLogPath = "data/post_ids.csv"
 commentIdLogPath= "data/comment_ids.csv"
 commentDataPath= "data/comments/{}.csv"
+finishedCommentPath= "data/finished/{}.csv"
 commentDataFolderPath="data/comments"
 
 # Time in seconds between time steps
 interval = 600.0
+# 12 hours in seconds
+twelvehours = 60.0 * 60.0 * 12.0
 # Number of Posts we are going to track
 postLimit = 100
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
 maxComments = 4000
-full = False
 
 def getPraw():
-  return praw.Reddit(user_agent=userAgent, client_id=clientId, client_secret=clientSecret)
+    return praw.Reddit(user_agent=userAgent, client_id=clientId, client_secret=clientSecret)
 
 def getTrackingData(posts):
     post_ids = []
@@ -61,6 +64,9 @@ def commentToString(s_comment, replies_len, parent_score, submission_score):
 
 def getSingleCommentData(s_comment, replies_len, parent_score, submission_score):
     id = s_comment.id
+    if time.time() - s_comment.created_utc >= twelvehours:
+        os.rename(commentDataPath.format(id), finishedCommentPath.format(id))
+        return
     if fileExists(id):
         appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score), id)
     else:
@@ -86,8 +92,11 @@ def getRepliesData(commentForest, parent_score, submission_score):
 
 def getAllData(posts, r):
     commentCount = 0
-    commentData = []
+    threads = []
+    full = False
     for submission in posts:
+        if full:
+            break
         submission_score = submission.score
         for top_comment in submission.comments:
             replies = top_comment.replies
@@ -96,12 +105,20 @@ def getAllData(posts, r):
             commentCount += 1
             commentCount += replies_len
 
-            getSingleCommentData(top_comment, replies_len, None, submission_score)
-            getRepliesData(top_comment.replies, top_comment.score, submission_score)
+            x = threading.Thread(target=threadTopComment, args=(top_comment, replies_len, submission_score,))
+            x.start()
+            threads.append(x)
 
             if commentCount >= maxComments:
                 full = True
-                return
+                break
+    for thread in threads:
+        thread.join()
+    return full
+
+def threadTopComment(top_comment, replies_len, submission_score):
+    getSingleCommentData(top_comment, replies_len, None, submission_score)
+    getRepliesData(top_comment.replies, top_comment.score, submission_score)
 
 def getAllDataFull(r):
     directory = os.fsencode(commentDataFolderPath)
@@ -136,10 +153,13 @@ def main():
     # postData = getTrackingData(posts)
     # exportTrackingData(postData)
     starttime = time.time()
+    full = False
     while True:
         begin_time = time.time()
+        if time.time() - starttime >= twelvehours:
+            full = True
         if not full:
-            getAllData(posts, r)
+            full = getAllData(posts, r)
         else:
             getAllDataFull(r)
         if time.time()-begin_time > 600:
