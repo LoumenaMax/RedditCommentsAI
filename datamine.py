@@ -167,6 +167,7 @@ def fileExists(id):
 def main():
     r = getPraw()
     global full
+    global commentCount
 
     page = r.subreddit('all')
     posts = page.new(limit=postLimit)
@@ -188,6 +189,7 @@ def main():
             print("Consider lowering the \'postlimit\' variable or the \'maxComments\' variable")
             return
         print("Time taken: {}".format(time.time()-begin_time))
+        print("Comment Count: {}".format(str(commentCount)))
         time.sleep(interval - ((time.time() - starttime) % interval))
 
 
