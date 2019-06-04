@@ -201,7 +201,7 @@ def main():
     global full
     global commentCount
     global maxComments
-
+    
     print("----------------------------------------------")
     print("Time between intervals: {} min".format(interval/60))
     print("Tracking {} posts and {} comments for {} hours".format(postLimit, maxComments, (twelvehours/60)/60))
