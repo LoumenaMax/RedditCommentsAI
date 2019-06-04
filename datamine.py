@@ -240,6 +240,8 @@ def main():
         print("Comment Count: {}/{}".format(str(commentCount), str(maxComments)))
         print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
         print("")
+        if time_elapsed > (twelvehours * 2) + 300
+            break
         time.sleep(interval - ((time.time() - starttime) % interval))
 
 if __name__ == "__main__":
