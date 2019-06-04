@@ -25,14 +25,14 @@ finishedCommentPath= "data/finished/{}.csv"
 commentDataFolderPath="data/comments"
 
 # Time in seconds between time steps
-interval = 600.0
+interval = 300.0
 # 12 hours in seconds
 twelvehours = 60.0 * 60.0 * 12.0
 # Number of Posts we are going to track
-postLimit = 100
+postLimit = 200
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
-maxComments = 1000
+maxComments = 1500
 full = False
 full_lock = threading.Lock()
 commentCount = 0
@@ -54,19 +54,20 @@ def exportTrackingData(postData):
     p_df = DataFrame(postData, columns= ['Posts'])
     export_csv_p = p_df.to_csv(postIdLogPath, index = None, header=True)
 
-def commentToString(s_comment, replies_len, parent_score, submission_score):
+def commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time):
     return "{},{},{},{},{},{},{},{}\r\n".format(
         time.time(),
         s_comment.score,
         s_comment.author.comment_karma,
-        s_comment.created_utc,
+        submission_time - s_comment.created_utc,
+        parent_time - s_comment.created_utc if parent_time else None,
         s_comment.edited,
         replies_len,
         parent_score,
         submission_score
     )
 
-def getSingleCommentData(s_comment, replies_len, parent_score, submission_score):
+def getSingleCommentData(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time):
     id = s_comment.id
     if time.time() - s_comment.created_utc >= twelvehours:
         full = True
@@ -76,28 +77,29 @@ def getSingleCommentData(s_comment, replies_len, parent_score, submission_score)
         if s_comment.author is None:
             os.remove(commentDataPath.format(id))
         else:
-            appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score), id)
+            appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time), id)
     else:
         if s_comment.author is not None:
             comment_dFrame = DataFrame([[
                 time.time(),
                 s_comment.score,
                 s_comment.author.comment_karma,
-                s_comment.created_utc,
+                submission_time - s_comment.created_utc,
+                parent_time - s_comment.created_utc if parent_time else None,
                 s_comment.edited,
                 replies_len,
                 parent_score,
                 submission_score
-            ]], columns=['Time', 'Score', 'Author Karma', 'Time Created', 'Edited', 'Replies', 'Parent Score', 'Submission Score'])
+            ]], columns=['Time', 'Score', 'Author Karma', 'Time Since Submission Created', 'Time Since Parent Created', 'Edited', 'Replies', 'Parent Score', 'Submission Score'])
             comment_dFrame.to_csv(commentDataPath.format(str(id)), index = None, header=True)
 
-def getRepliesData(commentForest, parent_score, submission_score):
+def getRepliesData(commentForest, parent_score, submission_score, submission_time, parent_time):
     if len(commentForest)  <= 0:
         return
     for top_comment in commentForest:
         replies = top_comment.replies
-        getSingleCommentData(top_comment, len(replies.list()), parent_score, submission_score)
-        getRepliesData(top_comment.replies, top_comment.score, submission_score)
+        getSingleCommentData(top_comment, len(replies.list()), parent_score, submission_score, submission_time, parent_time)
+        getRepliesData(top_comment.replies, top_comment.score, submission_score, submission_time, top_comment.created_utc)
 
 def getAllData(r):
     threads = []
@@ -116,6 +118,7 @@ def threadSubmission(submission_id, r):
     finished = False
     submission = r.submission(submission_id)
     submission_score = submission.score
+    submission_time = submission.created_utc
     for top_comment in submission.comments:
         replies = top_comment.replies
         replies_len = len(replies.list())
@@ -133,9 +136,9 @@ def threadSubmission(submission_id, r):
         if finished:
             break
 
-        getSingleCommentData(top_comment, replies_len, None, submission_score)
+        getSingleCommentData(top_comment, replies_len, None, submission_score, submission_time, None)
         top_comment.replies.replace_more(limit=None)
-        getRepliesData(top_comment.replies, top_comment.score, submission_score)
+        getRepliesData(top_comment.replies, top_comment.score, submission_score, submission_time, top_comment.created_utc)
 
         if commentCount >= maxComments:
             full = True
@@ -153,7 +156,8 @@ def getAllDataFull(r):
         if not comment.link_id == comment.parent_id:
             parent_score = comment.parent().score
         submission_score = comment.submission.score
-        appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score), id)
+        submission_time = comment.submission.created_utc
+        appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score, submission_time), id)
 
 def appendToComment(data, id):
     f = open(commentDataPath.format(str(id)), "a")
@@ -170,6 +174,11 @@ def main():
     global commentCount
     global maxComments
 
+    print("----------------------------------------------")
+    print("Time between intervals: {} min".format(interval/60))
+    print("Tracking {} posts and {} comments for {} hours".format(postLimit, maxComments, (twelvehours/60)/60))
+    print("----------------------------------------------")
+    print("")
     page = r.subreddit('all')
     posts = page.new(limit=postLimit)
 
@@ -185,12 +194,14 @@ def main():
             getAllData(r)
         else:
             getAllDataFull(r)
-        if time.time()-begin_time > 600:
-            print("Took over 10 minutes to go through the data!")
+        if time.time()-begin_time > interval:
+            print("Took over {} minutes to go through the data!".format(interval/60))
             print("Consider lowering the \'postlimit\' variable or the \'maxComments\' variable")
             return
         print("Time taken: {}".format(time.time()-begin_time))
         print("Comment Count: {}/{}".format(str(commentCount), str(maxComments)))
+        print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
+        print("")
         time.sleep(interval - ((time.time() - starttime) % interval))
 
 if __name__ == "__main__":
