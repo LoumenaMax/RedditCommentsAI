@@ -67,25 +67,29 @@ def commentToString(s_comment, replies_len, parent_score, submission_score):
     )
 
 def getSingleCommentData(s_comment, replies_len, parent_score, submission_score):
-    print("Comment Id:{}".format(s_comment.id))
     id = s_comment.id
     if time.time() - s_comment.created_utc >= twelvehours:
+        full = True
         os.rename(commentDataPath.format(id), finishedCommentPath.format(id))
         return
     if fileExists(id):
-        appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score), id)
+        if s_comment.author is None:
+            os.remove(commentDataPath.format(id))
+        else:
+            appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score), id)
     else:
-        comment_dFrame = DataFrame([[
-            time.time(),
-            s_comment.score,
-            s_comment.author.comment_karma,
-            s_comment.created_utc,
-            s_comment.edited,
-            replies_len,
-            parent_score,
-            submission_score
-        ]], columns=['Time', 'Score', 'Author Karma', 'Time Created', 'Edited', 'Replies', 'Parent Score', 'Submission Score'])
-        comment_dFrame.to_csv(commentDataPath.format(str(id)), index = None, header=True)
+        if s_comment.author is not None:
+            comment_dFrame = DataFrame([[
+                time.time(),
+                s_comment.score,
+                s_comment.author.comment_karma,
+                s_comment.created_utc,
+                s_comment.edited,
+                replies_len,
+                parent_score,
+                submission_score
+            ]], columns=['Time', 'Score', 'Author Karma', 'Time Created', 'Edited', 'Replies', 'Parent Score', 'Submission Score'])
+            comment_dFrame.to_csv(commentDataPath.format(str(id)), index = None, header=True)
 
 def getRepliesData(commentForest, parent_score, submission_score):
     if len(commentForest)  <= 0:
@@ -104,13 +108,13 @@ def getAllData(r):
         threads.append(x)
     for thread in threads:
         thread.join()
+    print(r.auth.limits)
 
 def threadSubmission(submission_id, r):
     global commentCount
     global full
     finished = False
     submission = r.submission(submission_id)
-    print("Submission Id: {}".format(submission_id))
     submission_score = submission.score
     for top_comment in submission.comments:
         replies = top_comment.replies
@@ -130,6 +134,7 @@ def threadSubmission(submission_id, r):
             break
 
         getSingleCommentData(top_comment, replies_len, None, submission_score)
+        top_comment.replies.replace_more(limit=None)
         getRepliesData(top_comment.replies, top_comment.score, submission_score)
 
         if commentCount >= maxComments:
