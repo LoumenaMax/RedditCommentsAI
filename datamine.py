@@ -207,6 +207,10 @@ def clearCommentsFolder():
 
 def main():
     clearCommentsFolder()
+    if not os.path.isdir('data/comments'):
+        os.mkdir('data/comments')
+    if not os.path.isdir('data/finished'):
+        os.mkdir('data/finished')
     r = getPraw()
     global full
     global commentCount
