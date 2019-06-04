@@ -224,6 +224,7 @@ def main():
     starttime = time.time()
     while True:
         begin_time = time.time()
+        time_elapsed = begin_time-starttime
         if time.time() - starttime >= twelvehours:
             full = True
         if not full:
@@ -234,6 +235,7 @@ def main():
             print("Took over {} minutes to go through the data!".format(interval/60))
             print("Consider lowering the \'postlimit\' variable or the \'maxComments\' variable")
             return
+        print("Total Time Elapsed: {} min".format(time_elapsed/60))
         print("Time taken: {}".format(time.time()-begin_time))
         print("Comment Count: {}/{}".format(str(commentCount), str(maxComments)))
         print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
