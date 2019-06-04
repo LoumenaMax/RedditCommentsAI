@@ -2,6 +2,7 @@ import time
 import requests
 import requests.auth
 import praw
+from pathlib import Path
 from pandas import read_csv
 from pandas import DataFrame
 from pandas import concat
@@ -17,13 +18,16 @@ password = "12345678"
 
 postIdLogPath = "data/post_ids.csv"
 commentIdLogPath= "data/comment_ids.csv"
-commentDataPath= "data/comment_data.csv"
+commentDataPath= "data/comments/{}.csv"
 
+# Time in seconds between time steps
+interval = 600.0
 # Number of Posts we are going to track
-postLimit = 10
+postLimit = 250
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
-maxComments = 25
+maxComments = 4000
+full = False
 
 def getPraw():
   return praw.Reddit(user_agent=userAgent, client_id=clientId, client_secret=clientSecret)
@@ -31,54 +35,99 @@ def getPraw():
 def getTrackingData(posts):
     post_ids = []
     comment_ids = []
-    current_time =  time.mktime(time.localtime())
     for post in posts:
         print(post.id)
         post_ids.append(post.id)
-        for comment in post.comments.list():
-            comment_ids.append(comment.id)
-    return {'Posts': post_ids}, {'Comments': comment_ids, 'Time': current_time}
+    return {'Posts': post_ids}
 
-def exportTrackingData(postData, commentData):
+
+
+def exportTrackingData(postData):
     p_df = DataFrame(postData, columns= ['Posts'])
-    c_df = DataFrame(commentData, columns=['Comments', 'Time'])
     export_csv_p = p_df.to_csv(postIdLogPath, index = None, header=True)
-    export_csv_c = c_df.to_csv(commentIdLogPath, index = None, header=True)
 
-def getCommentData(comments, posts, r):
+def commentToString(r, comment, replies_len):
+    submission_score = comment.submission.score
+    parent_score = None
+    if comment.parent_id != comment.link_id:
+        # Has no parent comment
+        return
+    else:
+        return
+    return "{},{},{},{},{},{}\r\n".format(
+        time.time(),
+        s_comment.score,
+        s_comment.author.comment_karma,
+        s_comment.created_utc,
+        s_comment.edited,
+        replies_len
+    )
+
+def getSingleCommentData(s_comment, replies_len):
+    id = s_comment.id
+    if fileExists(id):
+        appendToComment(commentToString(s_comment), id)
+    else:
+        comment_dFrame = DataFrame([[
+            time.time(),
+            s_comment.score,
+            s_comment.author.comment_karma,
+            s_comment.created_utc,
+            s_comment.edited,
+            replies_len
+        ]], columns=['Time', 'Score', 'Author Karma', 'Time Created', 'Edited', 'Replies'])
+        comment_dFrame.to_csv(commentDataPath.format(str(id)), index = None, header=True)
+
+def getRepliesData(commentForest, r):
+    if len(commentForest  <= 0)
+        return
+    for top_comment in commentForest:
+        replies = top_comment.replies
+        getSingleCommentData(top_comment, len(replies.list()))
+        getRepliesData(top_comment.replies)
+
+def getAllData(posts, r):
     commentCount = 0
     commentData = []
     for index, row in posts.iterrows():
         submission = r.submission(row[0])
-        for s_comment in submission.comments.list():
-            print(s_comment.id)
-            commentData.append([
-                s_comment.score,
-                s_comment.author.comment_karma,
-                s_comment.created_utc,
-                s_comment.edited,
-                len(s_comment.replies)
-            ])
-            commentCount += 1
-            if commentCount >= maxComments:
-                break
-        if commentCount >= maxComments:
-            break
-    return DataFrame(commentData, columns=['Score', 'Author Karma', 'Time Created', 'Edited', 'Replies'])
+        for top_comment in submission.comments:
+            replies = top_comment.replies
+            replies_len = len(replies.list())
 
-def getInstantiatedData(r):
-    c_dataset = read_csv(commentIdLogPath)
-    p_dataset = read_csv(postIdLogPath)
-    getCommentData(c_dataset, p_dataset, r).to_csv(commentDataPath, index = None, header=True)
+            commentCount += 1
+            commentCount += replies_len
+
+            getSingleCommentData(top_comment, replies_len)
+            getRepliesData(top_comment.replies)
+
+            if commentCount >= maxComments:
+                full = True
+                return
+
+def appendToComment(data, id):
+    f = open(commentDataPath.format(str(id)), "a")
+    f.write(data)
+    f.close()
+
+def fileExists(id):
+    config = Path(commentDataPath.format(str(id)))
+    return config.is_file()
 
 def main():
     r = getPraw()
-    # page = r.subreddit('all')
-    # posts = page.hot(limit=postLimit)
-    # postData, commentData = getTrackingData(posts)
-    #
-    # exportTrackingData(postData, commentData)
-    print(getInstantiatedData(r))
+
+    page = r.subreddit('all')
+    posts = page.new(limit=postLimit)
+    postData = getTrackingData(posts)
+    exportTrackingData(postData)
+
+    starttime = time.time()
+    while True:
+        getAllData(posts, r)
+        time.sleep(interval - ((time.time() - starttime) % interval))
+        print(getInstantiatedData(r))
+
 
 
 if __name__ == "__main__":
