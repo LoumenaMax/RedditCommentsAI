@@ -30,10 +30,10 @@ interval = 300.0
 # 12 hours in seconds
 twelvehours = 60.0 * 60.0 * 12.0
 # Number of Posts we are going to track
-postLimit = 300
+postLimit = 200
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
-maxComments = 500
+maxComments = 400
 full = False
 full_lock = threading.Lock()
 commentCount = 0
@@ -214,6 +214,7 @@ def setupFolders():
 
 def main():
     r = getPraw()
+    setupFolders()
     global full
     global commentCount
     global maxComments
@@ -249,7 +250,7 @@ def main():
         print("Completed Count: {}".format(len(os.listdir(os.fsencode(finishedFolderPath)))))
         print("Comments are full" if full else "Comments are still being pulled")
         print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
-        if not len(os.listdir(os.fsencode('data/comments'))) == commentCount:
+        if not len(os.listdir(os.fsencode(commentDataFolderPath))) == commentCount:
             print("Problem with commentCount! Count Value is {} but real value is {}!".format(commentCount, len(os.listdir(os.fsencode(commentDataFolderPath)))))
         print("")
         if time_elapsed > ((twelvehours * 2) + 300):
