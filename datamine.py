@@ -9,6 +9,18 @@ from pandas import read_csv
 from pandas import DataFrame
 from pandas import concat
 
+class CommentData:
+    def __init__(self, comment, replies_len, parent_score, submission_score, submission_time, parent_time):
+        self.comment = comment
+        self.replies_len = replies_len
+        self.parent_score = parent_score
+        self.submission_score = submission_score
+        self.time_from_submission = comment.created_utc - submission_time
+        if parent_time:
+            self.time_from_parent = comment.created_utc - parent_time
+        else:
+            self.time_from_parent = None
+
 # Just Google 'What is my useragent' to get this
 userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36"
 
@@ -55,38 +67,42 @@ def exportTrackingData(postData):
     p_df = DataFrame(postData, columns= ['Posts'])
     export_csv_p = p_df.to_csv(postIdLogPath, index = None, header=True)
 
-def commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time):
+def commentToString(commentData):
     return "{},{},{},{},{},{},{},{},{}\r\n".format(
         time.time(),
-        s_comment.score,
-        s_comment.author.comment_karma,
-        s_comment.created_utc - submission_time,
-        s_comment.created_utc - parent_time if parent_time else None,
-        s_comment.edited,
-        replies_len,
-        parent_score,
-        submission_score
+        commentData.comment.score,
+        commentData.comment.author.comment_karma,
+        commentData.time_from_submission,
+        commentData.time_from_parent if commentData.time_from_parent else "",
+        commentData.comment.edited,
+        commentData.replies_len,
+        commentData.parent_score if commentData.parent_score else "",
+        commentData.submission_score
     )
 
-def getSingleCommentData(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time):
-    id = s_comment.id
+def deleteComment(id):
     global commentCount
-    if time.time() - s_comment.created_utc >= twelvehours:
+    os.remove(commentDataPath.format(id))
+    commentCount_lock.acquire()
+    try:
+        commentCount -= 1
+    finally:
+        commentCount_lock.release()
+
+def getSingleCommentData(commentData):
+    id = commentData.comment.id
+    global commentCount
+    if time.time() - commentData.comment.created_utc >= twelvehours:
         full = True
         os.rename(commentDataPath.format(id), finishedCommentPath.format(id))
         return
     if fileExists(id):
-        if s_comment.author is None:
-            os.remove(commentDataPath.format(id))
-            commentCount_lock.acquire()
-            try:
-                commentCount -= 1
-            finally:
-                commentCount_lock.release()
+        if commentData.comment.author is None:
+            deleteComment(id)
         else:
-            appendToComment(commentToString(s_comment, replies_len, parent_score, submission_score, submission_time, parent_time), id)
+            appendToComment(commentToString(commentData), id)
     else:
-        if s_comment.author is not None:
+        if commentData.comment.author is not None:
             commentCount_lock.acquire()
             try:
                 commentCount += 1
@@ -94,14 +110,14 @@ def getSingleCommentData(s_comment, replies_len, parent_score, submission_score,
                 commentCount_lock.release()
             comment_dFrame = DataFrame([[
                 time.time(),
-                s_comment.score,
-                s_comment.author.comment_karma,
-                s_comment.created_utc - submission_time,
-                s_comment.created_utc - parent_time if parent_time else None,
-                s_comment.edited,
-                replies_len,
-                parent_score,
-                submission_score
+                commentData.comment.score,
+                commentData.comment.author.comment_karma,
+                commentData.time_from_submission,
+                commentData.time_from_parent,
+                commentData.comment.edited,
+                commentData.replies_len,
+                commentData.parent_score,
+                commentData.submission_score
             ]], columns=['Time', 'Score', 'Author Karma', 'Time Since Submission Created', 'Time Since Parent Created', 'Edited', 'Replies', 'Parent Score', 'Submission Score'])
             comment_dFrame.to_csv(commentDataPath.format(str(id)), index = None, header=True)
 
@@ -110,7 +126,7 @@ def getRepliesData(commentForest, parent_score, submission_score, submission_tim
         return
     for top_comment in commentForest:
         replies = top_comment.replies
-        getSingleCommentData(top_comment, len(replies.list()), parent_score, submission_score, submission_time, parent_time)
+        getSingleCommentData(CommentData(top_comment, len(replies.list()), parent_score, submission_score, submission_time, parent_time))
         getRepliesData(top_comment.replies, top_comment.score, submission_score, submission_time, top_comment.created_utc)
 
 def getAllData(r):
@@ -144,7 +160,7 @@ def threadSubmission(submission_id, r):
         if finished:
             break
 
-        getSingleCommentData(top_comment, replies_len, None, submission_score, submission_time, None)
+        getSingleCommentData(CommentData(top_comment, replies_len, None, submission_score, submission_time, None))
         top_comment.replies.replace_more(limit=None)
         getRepliesData(top_comment.replies, top_comment.score, submission_score, submission_time, top_comment.created_utc)
 
@@ -170,13 +186,8 @@ def threadFull(file, r):
     try:
         comment.refresh()
     except praw.exceptions.ClientException:
-        os.remove(commentDataPath.format(id))
-        commentCount_lock.acquire()
-        try:
-            commentCount -= 1
-        finally:
-            commentCount_lock.release()
-            return
+        deleteComment(id)
+        return
     parent_score = None
     submission_score = None
     parent_time = None
@@ -185,16 +196,11 @@ def threadFull(file, r):
         parent_score = parent.score
         parent_time = parent.created_utc
     if comment.author is None:
-        os.remove(commentDataPath.format(id))
-        commentCount_lock.acquire()
-        try:
-            commentCount -= 1
-        finally:
-            commentCount_lock.release()
+        deleteComment(id)
     else:
         submission_score = comment.submission.score
         submission_time = comment.submission.created_utc
-        appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score, submission_time, parent_time), id)
+        appendToComment(commentToString(CommentData(comment, len(comment.replies.list()), parent_score, submission_score, submission_time, parent_time)), id)
 
 
 def appendToComment(data, id):
@@ -219,6 +225,8 @@ def setupFolders():
     if not os.path.isdir(finishedFolderPath):
         os.mkdir(finishedFolderPath)
     clearCommentsFolder()
+
+
 
 def main():
     r = getPraw()
@@ -257,7 +265,8 @@ def main():
         print("Comment Count: {}/{}".format(str(commentCount), str(maxComments)))
         print("Completed Count: {}".format(len(os.listdir(os.fsencode(finishedFolderPath)))))
         print("Comments are full" if full else "Comments are still being pulled")
-        print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
+        if commentCount > 0:
+            print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
         if not len(os.listdir(os.fsencode(commentDataFolderPath))) == commentCount:
             print("Problem with commentCount! Count Value is {} but real value is {}!".format(commentCount, len(os.listdir(os.fsencode(commentDataFolderPath)))))
         print("")
