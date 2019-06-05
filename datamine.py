@@ -18,21 +18,22 @@ clientSecret = "6iNTXvVqkSRliLSpP0D9N-srTYQ"
 username = 'RedditCommentLSTM'
 password = "12345678"
 
-postIdLogPath = "data/post_ids.csv"
+postIdLogPath = "data/post_ids1.csv"
 commentIdLogPath= "data/comment_ids.csv"
-commentDataPath= "data/comments/{}.csv"
-finishedCommentPath= "data/finished/{}.csv"
-commentDataFolderPath="data/comments"
+finishedFolderPath= "data/finished"
+commentDataFolderPath="data/comments1"
+commentDataPath= commentDataFolderPath + "/{}.csv"
+finishedCommentPath= finishedFolderPath + "/{}.csv"
 
 # Time in seconds between time steps
 interval = 300.0
 # 12 hours in seconds
 twelvehours = 60.0 * 60.0 * 12.0
 # Number of Posts we are going to track
-postLimit = 200
+postLimit = 300
 # Totl number of comments we are going to track
 # TODO: Speed up comment instantiation
-maxComments = 1500
+maxComments = 500
 full = False
 full_lock = threading.Lock()
 commentCount = 0
@@ -204,12 +205,14 @@ def clearCommentsFolder():
         id, file_extension = os.path.splitext(filename)
         os.remove(commentDataPath.format(id))
 
-def main():
+def setupFolders():
     clearCommentsFolder()
-    if not os.path.isdir('data/comments'):
-        os.mkdir('data/comments')
-    if not os.path.isdir('data/finished'):
-        os.mkdir('data/finished')
+    if not os.path.isdir(commentDataFolderPath):
+        os.mkdir(commentDataFolderPath)
+    if not os.path.isdir(finishedFolderPath):
+        os.mkdir(finishedFolderPath)
+
+def main():
     r = getPraw()
     global full
     global commentCount
@@ -243,11 +246,11 @@ def main():
         print("Total Time Elapsed: {} min".format(time_elapsed/60))
         print("Time taken: {}".format(time.time()-begin_time))
         print("Comment Count: {}/{}".format(str(commentCount), str(maxComments)))
-        print("Completed Count: {}".format(len(os.listdir(os.fsencode('data/finished')))))
+        print("Completed Count: {}".format(len(os.listdir(os.fsencode(finishedFolderPath)))))
         print("Comments are full" if full else "Comments are still being pulled")
         print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
         if not len(os.listdir(os.fsencode('data/comments'))) == commentCount:
-            print("Problem with commentCount! Count Value is {} but real value is {}!".format(commentCount, len(os.listdir(os.fsencode('data/comments')))))
+            print("Problem with commentCount! Count Value is {} but real value is {}!".format(commentCount, len(os.listdir(os.fsencode(commentDataFolderPath)))))
         print("")
         if time_elapsed > ((twelvehours * 2) + 300):
             break
