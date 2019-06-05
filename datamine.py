@@ -190,6 +190,9 @@ def threadFull(file, r):
     parent_score = None
     submission_score = None
     parent_time = None
+    if time.time() - comment.created_utc >= twelvehours:
+        os.rename(commentDataPath.format(id), finishedCommentPath.format(id))
+        return
     if not comment.link_id == comment.parent_id:
         parent = comment.parent()
         parent_score = parent.score
