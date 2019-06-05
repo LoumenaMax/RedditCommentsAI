@@ -30,10 +30,10 @@ clientSecret = "6iNTXvVqkSRliLSpP0D9N-srTYQ"
 username = 'RedditCommentLSTM'
 password = "12345678"
 
-postIdLogPath = "data/post_ids1.csv"
+postIdLogPath = "data/post_ids4.csv"
 commentIdLogPath= "data/comment_ids.csv"
 finishedFolderPath= "data/finished"
-commentDataFolderPath="data/comments1"
+commentDataFolderPath="data/comments4"
 commentDataPath= commentDataFolderPath + "/{}.csv"
 finishedCommentPath= finishedFolderPath + "/{}.csv"
 
@@ -235,6 +235,7 @@ def main():
     global maxComments
 
     print("----------------------------------------------")
+    print("Started at: {}".format(time.asctime(time.localtime())))
     print("Time between intervals: {} min".format(interval/60))
     print("Tracking {} posts and {} comments for {} hours".format(postLimit, maxComments, (twelvehours/60)/60))
     print("----------------------------------------------")
