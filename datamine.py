@@ -89,7 +89,6 @@ def getSingleCommentData(s_comment, replies_len, parent_score, submission_score,
             commentCount_lock.acquire()
             try:
                 commentCount += 1
-                commentCount += replies_len
             finally:
                 commentCount_lock.release()
             comment_dFrame = DataFrame([[
