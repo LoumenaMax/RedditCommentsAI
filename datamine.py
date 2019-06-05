@@ -248,7 +248,7 @@ def main():
         print("Comments are full" if full else "Comments are still being pulled")
         print("Time taken per comment: {}s".format((time.time()-begin_time)/commentCount))
         print("")
-        if not len(os.listdir(os.fsencode('data/comments'))) commentCount:
+        if not len(os.listdir(os.fsencode('data/comments'))) == commentCount:
             print("Problem with commentCount! Count Value is {} but real value is {}!".format(commentCount, len(os.listdir(os.fsencode('data/comments')))))
         if time_elapsed > ((twelvehours * 2) + 300):
             break
