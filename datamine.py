@@ -179,7 +179,6 @@ def getAllDataFull(r):
         thread.join()
 
 def threadFull(file, r):
-    global commentCount
     filename = os.fsdecode(file)
     id, file_extension = os.path.splitext(filename)
     comment = r.comment(id)
