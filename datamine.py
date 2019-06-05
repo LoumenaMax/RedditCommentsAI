@@ -184,9 +184,17 @@ def threadFull(file, r):
         parent = comment.parent()
         parent_score = parent.score
         parent_time = parent.created_utc
-    submission_score = comment.submission.score
-    submission_time = comment.submission.created_utc
-    appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score, submission_time, parent_time), id)
+    if comment.author is None:
+        os.remove(commentDataPath.format(id))
+        commentCount_lock.acquire()
+        try:
+            commentCount -= 1
+        finally:
+            commentCount_lock.release()
+    else:
+        submission_score = comment.submission.score
+        submission_time = comment.submission.created_utc
+        appendToComment(commentToString(comment, len(comment.replies.list()), parent_score, submission_score, submission_time, parent_time), id)
 
 
 def appendToComment(data, id):
