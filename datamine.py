@@ -206,11 +206,11 @@ def clearCommentsFolder():
         os.remove(commentDataPath.format(id))
 
 def setupFolders():
-    clearCommentsFolder()
     if not os.path.isdir(commentDataFolderPath):
         os.mkdir(commentDataFolderPath)
     if not os.path.isdir(finishedFolderPath):
         os.mkdir(finishedFolderPath)
+    clearCommentsFolder()
 
 def main():
     r = getPraw()
