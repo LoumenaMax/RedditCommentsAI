@@ -255,6 +255,8 @@ def main():
         time_elapsed = begin_time-starttime
         if time.time() - starttime >= twelvehours:
             full = True
+        if time_elapsed > 600 and commentCount == 0:
+            break
         if not full:
             getAllData(r)
         else:
